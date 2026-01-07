@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>하루 루틴</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8e44ad;
+            --primary-light: #f3e5f5;
+            --bg: #f8f9fa;
+            --text: #333;
+            --done: #2ecc71;
+            --gray: #bdc3c7;
+            --sun-color: #e74c3c;
+            --sat-color: #3498db;
+            --star-off: #ddd;
+            --star-on: #f1c40f;
+            --danger: #ff6b6b;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            min-height: 100vh;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 헤더 */
+        header {
+            padding: 15px 20px;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .header-add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .header-add-btn:hover { background-color: #732d91; }
+
+        /* 달력 영역 */
+        .calendar-section {
+            padding: 20px;
+            background: white;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .month-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 15px;
+            color: #888;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 10px;
+            column-gap: 5px;
+            text-align: center;
+        }
+
+        .day-label {
+            font-size: 13px;
+            color: #aaa;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .day-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 55px;
+        }
+
+        .day-cell {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: 0.2s;
+            position: relative;
+            z-index: 2;
+            background: white;
+            margin-bottom: 2px;
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            z-index: 1;
+            margin-top: -4px;
+        }
+
+        /* 날짜 아래 별점 표시 스타일 */
+        .star-badge {
+            font-size: 9px; /* 별들이 한 줄에 들어오도록 작게 조정 */
+            color: var(--star-on);
+            z-index: 3;
+            line-height: 1;
+            margin-top: 3px;
+            letter-spacing: -1px; /* 별 간격 좁힘 */
+            white-space: nowrap;
+        }
+
+        .day-cell:hover { background-color: #f5f5f5; }
+        .day-cell.selected {
+            background-color: var(--primary) !important;
+            color: white !important;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);
+        }
+        .day-cell.today { border: 1px solid var(--primary); }
+        .day-cell.sun { color: var(--sun-color); }
+        .day-cell.sat { color: var(--sat-color); }
+
+        /* 루틴 리스트 영역 (메인) */
+        .routine-section {
+            flex: 1;
+            background: var(--bg);
+            padding: 25px 20px;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            margin-top: 10px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+            min-height: 300px;
+            padding-bottom: 50px;
+        }
+
+        .routine-item {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .routine-item:active { transform: scale(0.98); }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .routine-item.done { background-color: rgba(46, 204, 113, 0.08); }
+        .routine-item.done .checkbox {
+            background-color: var(--done);
+            border-color: var(--done);
+        }
+        .routine-item.done .checkbox::after {
+            content: '✔';
+            color: white;
+            font-size: 14px;
+        }
+        .routine-item.done span {
+            color: #aaa;
+            text-decoration: line-through;
+        }
+
+        /* 하루 기록 영역 */
+        .daily-record-section {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .record-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 5px;
+        }
+
+        .star {
+            font-size: 24px; 
+            color: var(--star-off);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .star.active { color: var(--star-on); }
+
+        .memo-area {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            background: #fdfdfd;
+            font-family: inherit;
+            resize: none;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.2s;
+        }
+        .memo-area:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        /* 관리 모드 팝업 */
+        .manager-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: flex-end; 
+        }
+        
+        .manager-overlay.open { display: flex; }
+
+        .manager-card {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            height: 85vh; 
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .manager-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .manager-title { font-weight: 700; font-size: 18px; }
+        
+        .close-btn {
+            background: #f1f3f5;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .manager-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .manager-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .manager-item-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .manager-item span { font-size: 15px; color: #333; }
+        
+        .btn-group { display: flex; gap: 5px; }
+
+        .btn-move {
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            color: #666;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .btn-move:hover { background: #e9ecef; }
+
+        .btn-delete {
+            color: var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+            border: none;
+            padding: 0 12px;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .manager-input-area {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: #fff;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+        }
+        .input-box:focus { border-color: var(--primary); }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .empty-text {
+            text-align: center;
+            color: #aaa;
+            padding: 30px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>하루 루틴</h1>
+        <!-- 관리 모드 버튼 -->
+        <button class="header-add-btn" onclick="openManager()">+</button>
+    </header>
+
+    <!-- 달력 -->
+    <div class="calendar-section">
+        <div class="month-header">
+            <button class="month-btn" onclick="changeMonth(-1)">&lt;</button>
+            <span id="month-display"></span>
+            <button class="month-btn" onclick="changeMonth(1)">&gt;</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+
+    <!-- 루틴 리스트 -->
+    <div class="routine-section">
+        <div id="list-items">
+            <!-- 메인 리스트 -->
+        </div>
+
+        <!-- 하루 기록 + 별점 -->
+        <div class="daily-record-section">
+            <div class="record-header">
+                <div class="section-title">📝 하루 기록</div>
+                
+                <div class="star-rating" id="star-rating">
+                    <span class="star" onclick="setRating(1)">★</span>
+                    <span class="star" onclick="setRating(2)">★</span>
+                    <span class="star" onclick="setRating(3)">★</span>
+                    <span class="star" onclick="setRating(4)">★</span>
+                    <span class="star" onclick="setRating(5)">★</span>
+                </div>
+            </div>
+            
+            <textarea class="memo-area" id="daily-memo" rows="3" placeholder="오늘 하루는 어땠나요? 기록을 남겨보세요." oninput="saveMemo(this.value)"></textarea>
+        </div>
+    </div>
+</div>
+
+<!-- =========================
+     [관리 모드 팝업] 
+     ========================= -->
+<div class="manager-overlay" id="manager-overlay">
+    <div class="manager-card">
+        <div class="manager-header">
+            <span class="manager-title">루틴 관리</span>
+            <button class="close-btn" onclick="closeManager()">닫기</button>
+        </div>
+        
+        <div class="manager-body" id="manager-list">
+            <!-- 관리 리스트 (순서변경/삭제) -->
+        </div>
+
+        <div class="manager-input-area">
+            <input type="text" class="input-box" id="new-todo" placeholder="새로운 루틴 입력">
+            <button class="btn-add" onclick="addTodo()">추가</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 상태 관리
+    let currentDate = new Date();
+    let selectedDate = new Date();
+    const STORAGE_KEY = 'hj_routine_v5'; 
+    const DEFAULT_KEY = 'hj_routine_defaults';
+    
+    // 데이터 로드
+    let routineData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    let defaultRoutines = JSON.parse(localStorage.getItem(DEFAULT_KEY)) || [];
+
+    // -------------------------------------
+    // 공통 함수
+    // -------------------------------------
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(routineData));
+        renderCalendar(); 
+    }
+
+    function saveDefaults(items) {
+        const templates = items.map(item => ({ text: item.text }));
+        localStorage.setItem(DEFAULT_KEY, JSON.stringify(templates));
+        defaultRoutines = templates;
+    }
+
+    function getFormatDate(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function getData(dateStr) {
+        if(!routineData[dateStr]) {
+            const newItems = defaultRoutines.map(t => ({
+                id: Date.now() + Math.random(),
+                text: t.text,
+                done: false
+            }));
+
+            routineData[dateStr] = { 
+                items: newItems, 
+                rating: 0, 
+                memo: "" 
+            };
+        }
+        return routineData[dateStr];
+    }
+
+    // -------------------------------------
+    // 달력 & 메인 리스트 렌더링
+    // -------------------------------------
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        document.getElementById('month-display').innerText = `${year}. ${String(month + 1).padStart(2, '0')}`;
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        const grid = document.getElementById('calendar-grid');
+        
+        grid.innerHTML = `
+            <div class="day-label" style="color:var(--sun-color)">일</div>
+            <div class="day-label">월</div>
+            <div class="day-label">화</div>
+            <div class="day-label">수</div>
+            <div class="day-label">목</div>
+            <div class="day-label">금</div>
+            <div class="day-label" style="color:var(--sat-color)">토</div>
+        `;
+
+        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+
+        const todayStr = getFormatDate(new Date());
+        const selectedStr = getFormatDate(selectedDate);
+
+        for(let d=1; d<=lastDate; d++) {
+            const thisDate = new Date(year, month, d);
+            const dateStr = getFormatDate(thisDate);
+            const dayOfWeek = thisDate.getDay(); 
+            
+            const data = routineData[dateStr];
+            let percent = 0;
+            let starHtml = ''; // 별점 표시 HTML
+
+            // 1. 링 그래프용 퍼센트 계산
+            if (data && data.items && data.items.length > 0) {
+                const doneCount = data.items.filter(i => i.done).length;
+                percent = Math.round((doneCount / data.items.length) * 100);
+            }
+
+            // 2. 날짜 아래 별점 표시 (등급 A-D 대신 별점 사용)
+            if (data && data.rating > 0) {
+                const stars = '★'.repeat(data.rating); // 점수만큼 별 반복
+                starHtml = `<span class="star-badge">${stars}</span>`;
+            }
+
+            let classes = 'day-cell';
+            if (dateStr === todayStr) classes += ' today';
+            if (dateStr === selectedStr) classes += ' selected';
+            if (dayOfWeek === 0) classes += ' sun';
+            if (dayOfWeek === 6) classes += ' sat';
+
+            let ringStyle = `background: conic-gradient(transparent 0% 100%);`;
+            if (data && data.items && data.items.length > 0) {
+                if(percent === 0) ringStyle = `background: conic-gradient(#eee 100%, transparent 0);`;
+                else ringStyle = `background: conic-gradient(#2ecc71 ${percent}%, #f0f0f0 ${percent}% 100%);`;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'day-wrapper';
+            wrapper.innerHTML = `
+                <div class="progress-ring" style="${ringStyle}"></div>
+                <div class="${classes}" onclick="selectDate(${year}, ${month}, ${d})">${d}</div>
+                ${starHtml} <!-- 날짜 아래 별점 표시 -->
+            `;
+            grid.appendChild(wrapper);
+        }
+    }
+
+    function changeMonth(offset) {
+        currentDate.setMonth(currentDate.getMonth() + offset);
+        renderCalendar();
+    }
+
+    function selectDate(y, m, d) {
+        selectedDate = new Date(y, m, d);
+        renderCalendar(); 
+        renderMainView();     
+    }
+
+    // 메인 화면
+    function renderMainView() {
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr); 
+        const listContainer = document.getElementById('list-items');
+
+        listContainer.innerHTML = '';
+        if (data.items.length === 0) {
+            listContainer.innerHTML = `<div class="empty-text">등록된 루틴이 없습니다.<br>상단 + 버튼을 눌러 추가하세요.</div>`;
+        } else {
+            data.items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `routine-item ${item.done ? 'done' : ''}`;
+                div.onclick = () => toggleTodo(dateStr, index);
+                
+                div.innerHTML = `
+                    <div class="checkbox"></div>
+                    <span>${item.text}</span>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, idx) => {
+            if(idx < data.rating) star.classList.add('active');
+            else star.classList.remove('active');
+        });
+
+        document.getElementById('daily-memo').value = data.memo || "";
+    }
+
+    function toggleTodo(dateStr, index) {
+        const data = getData(dateStr); 
+        data.items[index].done = !data.items[index].done;
+        
+        routineData[dateStr] = data; 
+        saveData();
+        renderMainView();
+    }
+
+    function setRating(score) {
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr);
+        if(data.rating === score) data.rating = 0;
+        else data.rating = score;
+        routineData[dateStr] = data;
+        saveData();
+        renderMainView();
+    }
+
+    function saveMemo(val) {
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr);
+        data.memo = val;
+        routineData[dateStr] = data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(routineData));
+    }
+
+    // -------------------------------------
+    // 관리 모드
+    // -------------------------------------
+    function openManager() {
+        const overlay = document.getElementById('manager-overlay');
+        overlay.classList.add('open');
+        renderManagerList(); 
+        document.getElementById('new-todo').focus();
+    }
+
+    function closeManager() {
+        document.getElementById('manager-overlay').classList.remove('open');
+        renderMainView(); 
+    }
+
+    function renderManagerList() {
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr);
+        const container = document.getElementById('manager-list');
+        
+        container.innerHTML = '';
+        if (data.items.length === 0) {
+            container.innerHTML = `<div class="empty-text">목록이 비어있습니다.</div>`;
+        } else {
+            data.items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'manager-item';
+                div.innerHTML = `
+                    <div class="manager-item-content">
+                        <span>${item.text}</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-move" onclick="moveTodo(${index}, -1)">▲</button>
+                        <button class="btn-move" onclick="moveTodo(${index}, 1)">▼</button>
+                        <button class="btn-delete" onclick="deleteTodo(${index})">삭제</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    }
+
+    function updateAndSave(data, dateStr) {
+        routineData[dateStr] = data;
+        saveData();
+        saveDefaults(data.items);
+        renderManagerList();
+    }
+
+    function moveTodo(index, direction) {
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr);
+        const newIndex = index + direction;
+
+        if (newIndex < 0 || newIndex >= data.items.length) return;
+
+        const temp = data.items[index];
+        data.items[index] = data.items[newIndex];
+        data.items[newIndex] = temp;
+
+        updateAndSave(data, dateStr);
+    }
+
+    function addTodo() {
+        const input = document.getElementById('new-todo');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const dateStr = getFormatDate(selectedDate);
+        const data = getData(dateStr);
+
+        data.items.push({
+            id: Date.now(),
+            text: text,
+            done: false
+        });
+
+        updateAndSave(data, dateStr);
+        input.value = '';
+        input.focus();
+    }
+
+    function deleteTodo(index) {
+        if(confirm('정말 삭제하시겠습니까?')) {
+            const dateStr = getFormatDate(selectedDate);
+            const data = getData(dateStr);
+            data.items.splice(index, 1);
+            updateAndSave(data, dateStr);
+        }
+    }
+
+    document.getElementById('new-todo').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTodo();
+    });
+
+    renderCalendar();
+    renderMainView();
+
+</script>
+
+</body>
+</html>
